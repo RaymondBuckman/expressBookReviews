@@ -11,6 +11,7 @@ const isValid = (username)=>{ //returns boolean
 
 const authenticatedUser = (username,password)=>{ //returns boolean
 //write code to check if username and password match the one we have in records.
+return users.some(user => user.username === username && user.password === password) // Not sure if this is right
 }
 
 //only registered users can login
