@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const session = require('express-session')
 const customer_routes = require('./router/auth_users.js').authenticated;
 const genl_routes = require('./router/general.js').general;
+const { authenticated } = require('./router/auth_users.js');
 
 const app = express();
 
@@ -10,25 +11,32 @@ app.use(express.json());
 
 app.use("/customer",session({secret:"fingerprint_customer",resave: true, saveUninitialized: true}))
 
-app.use("/customer/auth/*", function auth(req,res,next){
+app.use("/customer/auth/*", function auth(req, res, next){
     //Write the authenication mechanism here (Part 0)
         
-    // Check if user is logged in & has valid access token
-        if(req.session.authorization) {
-            let token = req.session.authorization['accessToken'];
+    // Check if there's a JWT token in the request headers
+console.log(req.session)
 
-            // Verify JWT token
-            jwt.verify(token, "access", (err, user) => {
-                if(!err) {
-                    req.user = user;
-                    next();     // Proceed to next middleware
+if(req.session){
+    if(req.session.authorization){
+            let token = req.session.authorization.token;
+            jwt.verify(token, 'my-secret-key', (err, user) => {
+                if (err) {
+                    // Token verification failed
+                    res.status(401).json({ error: 'galek err' });
                 } else {
-                    return res.status(403).json({ message: "User not autheticated" });
+                    req.session.user = user;
+                    next();
                 }
             });
-        } else {
-            return res.status(403).json({ message: "User not logged in" })
-        }
+
+
+    }
+    else{
+        res.status(401).json({ error: 'Unauthorized here' });
+    }
+}
+
 });
  
 const PORT =5000;
